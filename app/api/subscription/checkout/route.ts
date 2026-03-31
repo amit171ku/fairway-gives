@@ -11,6 +11,8 @@ export async function POST(req: NextRequest) {
     const { plan } = await req.json() as { plan: 'monthly' | 'yearly' }
     if (!STRIPE_PLANS[plan]) return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'https://fairway-gives.vercel.app'
+
     const { data: sub } = await supabase
       .from('subscriptions')
       .select('stripe_customer_id')
@@ -31,8 +33,8 @@ export async function POST(req: NextRequest) {
       customer: customerId,
       mode: 'subscription',
       line_items: [{ price: STRIPE_PLANS[plan].priceId, quantity: 1 }],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscribe/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscribe`,
+      success_url: `${appUrl}/subscribe/success`,
+      cancel_url: `${appUrl}/subscribe`,
       metadata: { user_id: user.id, plan },
     })
 
